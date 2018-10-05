@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     cv::CommandLineParser parser(argc, argv,
             // name  | default value    | help message
                                  "{help   |                  | print this message}"
-                                 "{@image | ../book_cover.jpg | image path}"
+                                 "{@image | ../ImagesForStudents/Image2.png | image path}"
     );
 
     if (parser.has("help")) {
