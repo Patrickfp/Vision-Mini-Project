@@ -1,0 +1,3 @@
+/home/patrickfriis/Documents/vision/Mandatory1/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/patrickfriis/Documents/vision/Mandatory1/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/patrickfriis/Documents/vision/Mandatory1/cmake-build-debug/CMakeFiles/Mandatory1.dir
