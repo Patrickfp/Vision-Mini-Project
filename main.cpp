@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 
     // Load image file
     std::string filepath = parser.get<std::string>("@image");
-    Mat img1 = imread("../ImagesForStudents/Image1.png");
+    Mat img1 = imread("../ImagesForStudents/Image1.png",COLOR_BGR2GRAY);
 
     // Check that the image file was actually loaded
     if (img1.empty()) {
@@ -47,16 +47,16 @@ int main(int argc, char* argv[])
     resizeWindow("Image 1", 800, 1000);
     imshow("Image 1", img1);
     Mat roi1(img1, Rect(825, 1400, 695, 420));
-    imshow("histogram of image 1 at roi", make_histogram( roi1));
-
+    imshow("histogram of image 1 at roi", make_histogram(img1));
+/*
     // Image 2
-    Mat img2 = imread("../ImagesForStudents/Image2.png");
+    Mat img2 = imread("../ImagesForStudents/Image2.png",COLOR_BGR2GRAY);
     namedWindow("Image 2", CV_WINDOW_NORMAL);
     resizeWindow("Image 2", 800, 1000);
     imshow("Image 2", img2);
     Mat roi2(img2, Rect(825, 1400, 695, 420));
-    imshow("histogram of image 2 at roi", make_histogram(roi2));
-
+    imshow("histogram of image 2 at roi", make_histogram(roi2));*/
+/*
     // Image 3
     Mat img3 = imread("../ImagesForStudents/Image3.png");
     namedWindow("Image 3", CV_WINDOW_NORMAL);
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     namedWindow("Image 4", CV_WINDOW_NORMAL);
     resizeWindow("Image 4", 800, 1000);
     imshow("Image 4", img4);
-    Mat roi4(img4, Rect(825, 1400, 695, 420));
+    Mat roi4(img4, Rect(825, 1400, 695, 420));*/
   // Notch reject
 
 
@@ -82,10 +82,18 @@ int main(int argc, char* argv[])
 //    imshow("Image 5", img5);
 //    Mat roi5(img5, Rect(825, 1400, 695, 420));
 
+    namedWindow("Filtered", CV_WINDOW_NORMAL);
+    resizeWindow("Filtered", 800, 1000);
+    Mat temp = AdaptiveFilter(img1);
+    imshow("Filtered", temp);
+    Mat roi(temp, Rect(825, 1400, 695, 420));
+    imshow("histogram of filter at roi", make_histogram(temp));
+
 
     // Wait for escape key press before returning
     while (waitKey() != 27)
         ; // (do nothing)
+
 
     return 0;
 }

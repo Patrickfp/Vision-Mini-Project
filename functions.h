@@ -7,6 +7,7 @@
 #include<opencv2/core/core.hpp>
 #include <opencv2/highgui.hpp>
 #include "opencv2/opencv.hpp"
+#include "linkedlist.h"
 
 using namespace cv;
 
@@ -91,4 +92,139 @@ void draw_magnitude(const Mat& magI)
     cv::namedWindow( "spectrum magnitude", cv::WINDOW_NORMAL);
     imshow("spectrum magnitude", magI);
     cv::resizeWindow("spectrum magnitude", magI.cols/2, magI.rows/2);
+}
+
+//------------------- Filters -----------------------//
+
+Mat medianFilter(const Mat& input) {
+    //Mat filtered(input.cols,input.rows,input.type());
+    Mat padded;
+    Mat filtered;
+    int n = 2;
+    cv::copyMakeBorder(input, filtered, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
+    cv::copyMakeBorder(input, padded, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
+    for (int x = n; x < (filtered.rows - n); x++)
+        for (int y = n; y < (filtered.cols - n); y++)
+        {
+            llist l;
+            //std::cout << x << " - " << y  << "\n";
+            for (int i = x - n; i <= x + n; i++) {
+                for (int j = y - n; j <= y + n; j++) {
+                    //std::cout << i << " - " << j  << "\n";
+                    if (padded.at<uchar>(i, j) > 0 && padded.at<uchar>(i, j) < 255)
+                        l.insertSort(padded.at<uchar>(i, j));
+                }
+            }
+            int tempval = l.median();
+            filtered.at<uchar>(x, y) = tempval;
+        }
+
+        return filtered;
+}
+
+cv::Mat linear_filter(const cv::Mat& input)
+{
+    cv::Mat output;
+    copyMakeBorder(input, output, 2, 2, 2, 2, BORDER_REFLECT);
+
+    for (int i = 2; i < output.rows - 2; i++)
+    {
+        uchar* fiveRows[] = {
+                output.ptr(i -2),
+                output.ptr(i -1),
+                output.ptr(i),
+                output.ptr(i + 1),
+                output.ptr(i +2)
+        };
+
+        for (int j = 2; j < output.cols - 2; j++)
+        {
+            Vec<uchar, 25> neightbours;
+            neightbours << fiveRows[0][j-2], fiveRows[1][j-2], fiveRows[2][j-2], fiveRows[3][j-2],fiveRows[4][j-2],
+                    fiveRows[0][j-1], fiveRows[1][j-1], fiveRows[2][j-1], fiveRows[3][j-1],fiveRows[4][j-1],
+                    fiveRows[0][j], fiveRows[1][j], fiveRows[2][j], fiveRows[3][j],fiveRows[4][j],
+                    fiveRows[0][j+1], fiveRows[1][j+1], fiveRows[2][j+1], fiveRows[3][j+1],fiveRows[4][j+1],
+                    fiveRows[0][j+2], fiveRows[1][j+2], fiveRows[2][j+2], fiveRows[3][j+2],fiveRows[4][j+2];
+
+
+            sort(neightbours, neightbours, SORT_EVERY_COLUMN | SORT_ASCENDING);
+            int sum = 0;
+            int count = 0;
+            for (int n = 0; n < 25;n++)
+                if(neightbours(n) != 0)
+                {
+                    sum += neightbours(n);
+                    count++;
+                }
+                if (count > 0)
+                    output.at<uchar>(i-2,j-2) = sum/count;
+
+            //output.at<uchar>(i - 1, j - 1) = (neightbours(3) + neightbours(4) + neightbours(5)) / 3;
+        }
+
+    }
+    return output;
+}
+cv::Mat cv_linear_filter(const cv::Mat& input)
+{
+    cv::Mat output;
+    cv::Mat_<float> kernel(3, 3);
+    kernel << 0,  -1,  0,
+            -1,  -2,  -1,
+            0,  -1,  0;
+    cv::filter2D(input, output, -1, kernel, cv::Point(-1, -1), 0, cv::BORDER_REFLECT);
+    return output;
+}
+
+cv::Mat transform_intensity(const cv::Mat& input, int intensity)
+{
+    Mat img = input.clone();
+
+    for (int i = 0; i < img.rows; i++)
+    {
+        for (int j = 0; j < img.cols; j++)
+        {
+                int value = img.at<uchar>(i,j) + intensity;
+                img.at<uchar>(i,j) = saturate_cast<uchar>(value);
+
+        }
+    }
+    return img;
+}
+Mat AdaptiveFilter(const Mat& input)
+{
+    Mat filtered, padded;
+    const int n = 3; // padding
+
+    cv::copyMakeBorder(input, filtered, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
+    cv::copyMakeBorder(input, padded, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
+    for (int x = n; x < (filtered.rows - n); x++)
+        for (int y = n; y < (filtered.cols - n); y++)
+        {
+            bool done = false;
+            int m = 1;
+            while(not(done)) {
+                llist l;
+                //std::cout << x << " - " << y  << "\n";
+                for (int i = x - m; i <= x + m; i++) {
+                    for (int j = y - m; j <= y + m; j++) {
+                        //std::cout << i << " - " << j  << "\n";
+                        l.insertSort(padded.at<uchar>(i, j));
+                    }
+                }
+                int med = l.median();
+                int min = l.min();
+                int max = l.max();
+                if (med == min || med == max) {
+                    m++;
+                    if (m > 3)
+                        done = true; //filtered.at<uchar>(x,y) = ;
+                }
+                else if(filtered.at<uchar>(x,y) == min || filtered.at<uchar>(x,y) == max ) {
+                    filtered.at<uchar>(x, y) = med;
+                    done = true;
+                }
+            }
+        }
+        return filtered;
 }
