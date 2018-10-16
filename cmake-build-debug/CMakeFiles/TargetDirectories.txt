@@ -1,3 +1,0 @@
-/home/patrickfp/Documents/vision/Vision-Mini-Project/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/patrickfp/Documents/vision/Vision-Mini-Project/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/patrickfp/Documents/vision/Vision-Mini-Project/cmake-build-debug/CMakeFiles/Mandatory1.dir
