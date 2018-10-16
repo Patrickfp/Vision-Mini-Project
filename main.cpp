@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 {
     // Parse command line arguments -- the first positional argument expects an
     // image path (the default is ./book_cover.jpg)
-    cv::CommandLineParser parser(argc, argv,
+    CommandLineParser parser(argc, argv,
             // name  | default value    | help message
                                  "{help   |                  | print this message}"
                                  "{@image | ../ImagesForStudents/Image2.png | image path}"
@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 
     // Load image file
     std::string filepath = parser.get<std::string>("@image");
-    cv::Mat img1 = cv::imread("../ImagesForStudents/Image1.png");
+    Mat img1 = imread("../ImagesForStudents/Image1.png");
 
     // Check that the image file was actually loaded
     if (img1.empty()) {
@@ -43,39 +43,48 @@ int main(int argc, char* argv[])
     }
 
     // Image 1
-    cv::namedWindow("Image 1", CV_WINDOW_NORMAL);
-    cv::resizeWindow("Image 1", 800, 1000);
-    cv::imshow("Image 1", img1);
+    namedWindow("Image 1", CV_WINDOW_NORMAL);
+    resizeWindow("Image 1", 800, 1000);
+    imshow("Image 1", img1);
+    Mat roi1(img1, Rect(825, 1400, 695, 420));
+    imshow("histogram of image 1 at roi", make_histogram( roi1));
 
     // Image 2
-    cv::Mat img2 = cv::imread("../ImagesForStudents/Image2.png");
-    cv::namedWindow("Image 2", CV_WINDOW_NORMAL);
-    cv::resizeWindow("Image 2", 800, 1000);
-    cv::imshow("Image 2", img2);
-
-    Mat histogram_image2 = calc_histogram(img2);
-    imshow("histogram of Image 2", draw_histogram(histogram_image2));
+    Mat img2 = imread("../ImagesForStudents/Image2.png");
+    namedWindow("Image 2", CV_WINDOW_NORMAL);
+    resizeWindow("Image 2", 800, 1000);
+    imshow("Image 2", img2);
+    Mat roi2(img2, Rect(825, 1400, 695, 420));
+    imshow("histogram of image 2 at roi", make_histogram(roi2));
 
     // Image 3
-    cv::Mat img3 = cv::imread("../ImagesForStudents/Image3.png");
-    cv::namedWindow("Image 3", CV_WINDOW_NORMAL);
-    cv::resizeWindow("Image 3", 800, 1000);
-    cv::imshow("Image 3", img3);
+    Mat img3 = imread("../ImagesForStudents/Image3.png");
+    namedWindow("Image 3", CV_WINDOW_NORMAL);
+    resizeWindow("Image 3", 800, 1000);
+    Mat roi3(img3, Rect(825, 1400, 695, 420));
+    imshow("Image 3", img3);
+ // Alpha trim
 
     // Image 4
-    cv::Mat img4 = cv::imread("../ImagesForStudents/Image4_1.png");
-    cv::namedWindow("Image 4", CV_WINDOW_NORMAL);
-    cv::resizeWindow("Image 4", 800, 1000);
-    cv::imshow("Image 4", img4);
+    Mat img4 = imread("../ImagesForStudents/Image4_1.png");
+    namedWindow("Image 4", CV_WINDOW_NORMAL);
+    resizeWindow("Image 4", 800, 1000);
+    imshow("Image 4", img4);
+    Mat roi4(img4, Rect(825, 1400, 695, 420));
+  // Notch reject
+
+
+
     // Image 5
-    cv::Mat img5 = cv::imread("../ImagesForStudents/Image5_optional.png");
-    cv::namedWindow("Image 5", CV_WINDOW_NORMAL);
-    cv::resizeWindow("Image 5", 800, 1000);
-    cv::imshow("Image 5", img5);
+//    Mat img5 = imread("../ImagesForStudents/Image5_optional.png");
+//    namedWindow("Image 5", CV_WINDOW_NORMAL);
+//    resizeWindow("Image 5", 800, 1000);
+//    imshow("Image 5", img5);
+//    Mat roi5(img5, Rect(825, 1400, 695, 420));
 
 
     // Wait for escape key press before returning
-    while (cv::waitKey() != 27)
+    while (waitKey() != 27)
         ; // (do nothing)
 
     return 0;
