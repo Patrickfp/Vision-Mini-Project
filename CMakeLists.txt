@@ -14,5 +14,5 @@ if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GN
 endif()
 
 # Target executable
-add_executable(Mandatory1 main.cpp functions.h)
+add_executable(Mandatory1 main.cpp functions.h linkedlist.h)
 target_link_libraries(Mandatory1 ${OpenCV_LIBS})

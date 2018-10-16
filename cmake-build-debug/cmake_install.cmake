@@ -1,4 +1,4 @@
-# Install script for directory: /home/patrickfriis/Documents/vision/Mandatory1
+# Install script for directory: /home/patrickfp/Documents/vision/Vision-Mini-Project
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/patrickfriis/Documents/vision/Mandatory1/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/patrickfp/Documents/vision/Vision-Mini-Project/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

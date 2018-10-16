@@ -1,5 +1,4 @@
-/opt/clion-2018.2.4/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/patrickfriis/Documents/vision/Mandatory1
--- Found OpenCV: /usr (found suitable version "3.2.0", minimum required is "3") 
+/opt/clion-2018.2.4/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/patrickfp/Documents/vision/Vision-Mini-Project
 -- Configuring done
 -- Generating done
--- Build files have been written to: /home/patrickfriis/Documents/vision/Mandatory1/cmake-build-debug
+-- Build files have been written to: /home/patrickfp/Documents/vision/Vision-Mini-Project/cmake-build-debug

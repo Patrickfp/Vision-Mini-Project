@@ -6,9 +6,29 @@
 
 #IncludeRegexTransform: 
 
-/home/patrickfriis/Documents/vision/Mandatory1/main.cpp
+/home/patrickfp/Documents/vision/Vision-Mini-Project/functions.h
+opencv2/core/core.hpp
+-
 opencv2/highgui.hpp
 -
+opencv2/opencv.hpp
+/home/patrickfp/Documents/vision/Vision-Mini-Project/opencv2/opencv.hpp
+linkedlist.h
+/home/patrickfp/Documents/vision/Vision-Mini-Project/linkedlist.h
+
+/home/patrickfp/Documents/vision/Vision-Mini-Project/linkedlist.h
+iostream
+-
+
+/home/patrickfp/Documents/vision/Vision-Mini-Project/main.cpp
+opencv2/core/core.hpp
+-
+opencv2/highgui.hpp
+-
+opencv2/opencv.hpp
+/home/patrickfp/Documents/vision/Vision-Mini-Project/opencv2/opencv.hpp
+functions.h
+/home/patrickfp/Documents/vision/Vision-Mini-Project/functions.h
 iostream
 -
 
