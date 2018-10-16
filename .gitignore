@@ -1,2 +1,5 @@
 __MACOSX
 
+cmake-build-debug/
+qtc-build-debug/
+CmakeLists.txt.user
