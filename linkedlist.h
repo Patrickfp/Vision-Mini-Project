@@ -53,6 +53,12 @@ public:
 			temp->next = head;
 			head = temp;
 		}
+		else if(tail->value < value)
+        {
+		    temp->value = value;
+		    tail->next = temp;
+            tail = temp;
+        }
 		else
 		{
 			temp = head;
@@ -64,7 +70,8 @@ public:
 			temp2->value = value;
 			temp2->next = temp->next;
 			temp->next = temp2;
-
+			if (temp2->next == NULL)
+			    tail = temp2;
 		}
 	}
 	int median()
@@ -76,20 +83,19 @@ public:
 			return 0;
 		while (temp2 != NULL && temp2->next != NULL)
 		{
-			if (temp2 == NULL)
-				return (temp->value+tempval)/2.0f;
+            tempval = temp->value;
 			temp = temp->next;
 			temp2 = temp2->next->next;
-			tempval = temp->value;
 		}
+        if (temp2 == NULL)
+            return (temp->value+tempval)/2;
 		return temp->value;
 	}
 	int average()
 	{
 		if (isEmpty())
 			return 0;
-		node *temp = new node;
-		temp = head;
+		node *temp = head;
 		int sum = 0;
 		int ite = 0;
 		while (temp != NULL)
@@ -115,7 +121,7 @@ public:
 	        return 0;
 	    return tail->value;
     }
-	/*void display()
+	void display()
 	{
 		node *temp = new node;
 		temp = head;
@@ -124,7 +130,19 @@ public:
 			std::cout << temp->value << "\t";
 			temp = temp->next;
 		}
-	}*/
+	}
+	~llist()
+    {
+	    //std::cout << "hej";
+        node *temp = head;
+        while(temp != NULL)
+        {
+            node *temp2 = temp->next;
+            delete temp;
+            temp = temp2;
+        }
+        head = tail = NULL;
+    }
 private:
 	node *head, *tail;
 };

@@ -111,15 +111,41 @@ Mat medianFilter(const Mat& input) {
             for (int i = x - n; i <= x + n; i++) {
                 for (int j = y - n; j <= y + n; j++) {
                     //std::cout << i << " - " << j  << "\n";
-                    if (padded.at<uchar>(i, j) > 0 && padded.at<uchar>(i, j) < 255)
+                    if ((int)padded.at<uchar>(i, j) > 0 && (int)padded.at<uchar>(i, j) < 255)
                         l.insertSort(padded.at<uchar>(i, j));
                 }
             }
             int tempval = l.median();
+            //std::cout << tempval << "\n";
             filtered.at<uchar>(x, y) = tempval;
         }
 
         return filtered;
+}
+Mat averageFilter(const Mat& input) {
+    Mat padded;
+    Mat filtered;
+    int n = 2;
+    cv::copyMakeBorder(input, filtered, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
+    cv::copyMakeBorder(input, padded, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
+    for (int x = n; x < (filtered.rows - n); x++)
+        for (int y = n; y < (filtered.cols - n); y++)
+        {
+            llist l;
+            //std::cout << x << " - " << y  << "\n";
+            for (int i = x - n; i <= x + n; i++) {
+                for (int j = y - n; j <= y + n; j++) {
+                    //std::cout << i << " - " << j  << "\n";
+                    if ((int)padded.at<uchar>(i, j) > 0 && (int)padded.at<uchar>(i, j) < 255)
+                        l.append(padded.at<uchar>(i, j));
+                }
+            }
+            int tempval = l.average();
+            //std::cout << tempval << "\n";
+            filtered.at<uchar>(x, y) = tempval;
+        }
+
+    return filtered;
 }
 
 cv::Mat linear_filter(const cv::Mat& input)
@@ -169,9 +195,9 @@ cv::Mat cv_linear_filter(const cv::Mat& input)
 {
     cv::Mat output;
     cv::Mat_<float> kernel(3, 3);
-    kernel << 0,  -1,  0,
-            -1,  -2,  -1,
-            0,  -1,  0;
+    kernel << 0,  1,  0,
+            1,  -4,  1,
+            0,  1,  0;
     cv::filter2D(input, output, -1, kernel, cv::Point(-1, -1), 0, cv::BORDER_REFLECT);
     return output;
 }
@@ -191,16 +217,19 @@ cv::Mat transform_intensity(const cv::Mat& input, int intensity)
     }
     return img;
 }
-Mat AdaptiveFilter(const Mat& input)
+Mat adaptiveFilter(const Mat& input)
 {
     Mat filtered, padded;
-    const int n = 3; // padding
-
+    const int n = 4; // padding
+    int count = 0;
     cv::copyMakeBorder(input, filtered, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
     cv::copyMakeBorder(input, padded, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
+    //std::cout << input.size();
     for (int x = n; x < (filtered.rows - n); x++)
         for (int y = n; y < (filtered.cols - n); y++)
         {
+            //std::cout << x << " - " << y  << "\n";
+
             bool done = false;
             int m = 1;
             while(not(done)) {
@@ -212,19 +241,33 @@ Mat AdaptiveFilter(const Mat& input)
                         l.insertSort(padded.at<uchar>(i, j));
                     }
                 }
+                //l.display();
+                //std::cout << "\n";
                 int med = l.median();
                 int min = l.min();
                 int max = l.max();
+                //std::cout <<"m: " << m << std::endl;
+                //std::cout << "min: " << min << ", max: " << max << ", med: " << med << "\n";
+                //std::cout << (int)filtered.at<uchar>(x,y) << "\n";
                 if (med == min || med == max) {
                     m++;
-                    if (m > 3)
+                    if (m > n) {
+                        count++;
                         done = true; //filtered.at<uchar>(x,y) = ;
+                    }
                 }
-                else if(filtered.at<uchar>(x,y) == min || filtered.at<uchar>(x,y) == max ) {
+                else if((int)filtered.at<uchar>(x,y) == min || (int)filtered.at<uchar>(x,y) == max ) {
+                    //std::cout << (int)filtered.at<uchar>(x,y) <<", med: " << med << "\n";
                     filtered.at<uchar>(x, y) = med;
                     done = true;
                 }
+                else {
+                    done = true;
+                }
+                //delete l;
             }
+            //std::cout << (int)filtered.at<uchar>(x,y)  << "\n";
         }
+        std::cout << count << std::endl;
         return filtered;
 }

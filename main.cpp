@@ -42,20 +42,20 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Image 1
+ /*   // Image 1
     namedWindow("Image 1", CV_WINDOW_NORMAL);
     resizeWindow("Image 1", 800, 1000);
     imshow("Image 1", img1);
     Mat roi1(img1, Rect(825, 1400, 695, 420));
     imshow("histogram of image 1 at roi", make_histogram(img1));
-/*
+*/
     // Image 2
     Mat img2 = imread("../ImagesForStudents/Image2.png",COLOR_BGR2GRAY);
     namedWindow("Image 2", CV_WINDOW_NORMAL);
     resizeWindow("Image 2", 800, 1000);
     imshow("Image 2", img2);
     Mat roi2(img2, Rect(825, 1400, 695, 420));
-    imshow("histogram of image 2 at roi", make_histogram(roi2));*/
+    imshow("histogram of image 2 at roi", make_histogram(roi2));
 /*
     // Image 3
     Mat img3 = imread("../ImagesForStudents/Image3.png");
@@ -84,10 +84,12 @@ int main(int argc, char* argv[])
 
     namedWindow("Filtered", CV_WINDOW_NORMAL);
     resizeWindow("Filtered", 800, 1000);
-    Mat temp = AdaptiveFilter(img1);
-    imshow("Filtered", temp);
+    Mat temp = adaptiveFilter(img2);
+   // Mat temp2;
+   // cv::add(cv_linear_filter(temp),temp,temp2);
+    imshow("Filtered",temp);
     Mat roi(temp, Rect(825, 1400, 695, 420));
-    imshow("histogram of filter at roi", make_histogram(temp));
+    imshow("histogram of filter at roi", make_histogram(roi));
 
 
     // Wait for escape key press before returning
