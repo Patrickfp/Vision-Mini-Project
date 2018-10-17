@@ -12,12 +12,34 @@
 using namespace cv;
 
 // Mostly Taken from https://docs.opencv.org/master/d8/dbc/tutorial_histogram_calculation.html
-Mat make_histogram(const cv::Mat& input)
+Mat make_histogram(const cv::Mat& input,bool eq)
 {
     Mat histogram;
-
     calcHist( std::vector<Mat>{input},{0}, noArray(), histogram, {256}, {0, 256});
 
+    if (eq)
+    {
+
+
+        // uses the calc_histogram to calculate the histogram for the image
+        Mat transformation_function(histogram.size(), CV_32FC1);
+        float c = float(histogram.rows - 1) / (input.rows*input.cols);
+
+        for (int i = 0; i < histogram.rows; i++)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                transformation_function.at<float>(i) += histogram.at<float>(j);
+            }
+            transformation_function.at<float>(i) *= c;
+        }
+
+        transformation_function.convertTo(transformation_function, CV_8U);
+        LUT(input, transformation_function, histogram); // Look-up table of 256
+        // this is also why we convert to 8U
+
+        calcHist( std::vector<Mat>{histogram},{0}, noArray(), histogram, {256}, {0, 256});
+    }
     int histSize = 256;
 
     int hist_w = 257; int hist_h = 256;
@@ -36,18 +58,42 @@ Mat make_histogram(const cv::Mat& input)
 
     return histImage;
 }
+Mat equalize_image(cv::Mat& input)
+{
+    Mat histo;
+    calcHist( std::vector<Mat>{input},{0}, noArray(), histo, {256}, {0, 256});
+    // uses the calc_histogram to calculate the histogram for the image
+    Mat transformation_function(histo.size(), CV_32FC1);
+    float c = float(histo.rows - 1) / (input.rows*input.cols);
 
+    for (int i = 0; i < histo.rows; i++)
+    {
+        for (int j = 0; j < i; j++)
+        {
+            transformation_function.at<float>(i) += histo.at<float>(j);
+        }
+        transformation_function.at<float>(i) *= c;
+    }
+
+    transformation_function.convertTo(transformation_function, CV_8U);
+    Mat equalized_output;
+    LUT(input, transformation_function, equalized_output); // Look-up table of 256
+    // this is why we convert to 8U
+
+    return equalized_output;
+}
 Mat calc_dft(const Mat& input)
 {
     Mat img, padded;
-    cv::cvtColor(input, img, CV_BGR2GRAY);
+    img = input;
+    //cv::cvtColor(input, img, CV_BGR2GRAY);
 
     int m = getOptimalDFTSize( img.rows );
     int n = getOptimalDFTSize( img.cols );
 
     copyMakeBorder(img, padded, 0, m - img.rows, 0, n - img.cols, BORDER_CONSTANT, Scalar::all(0));
 
-    std::cout <<padded.size() <<" \n";
+    //std::cout <<padded.size() <<" \n";
     cv::Mat planes[] = {cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F)};
     Mat complexI;
     merge(planes, 2, complexI);
@@ -80,6 +126,7 @@ Mat calc_dft(const Mat& input)
     q2.copyTo(q1);
     tmp.copyTo(q2);
 
+    std::cout << planes[0].type() << "\n";
    return planes[0];
 
 }
@@ -88,10 +135,10 @@ void draw_magnitude(const Mat& magI)
 {
     Mat temp;
 
-    normalize(magI, magI, 0, 1, CV_MINMAX); // Transform the matrix with float values into a
+    normalize(magI, magI, 0, 1, NORM_MINMAX); // Transform the matrix with float values into a
     cv::namedWindow( "spectrum magnitude", cv::WINDOW_NORMAL);
     imshow("spectrum magnitude", magI);
-    cv::resizeWindow("spectrum magnitude", magI.cols/2, magI.rows/2);
+    cv::resizeWindow("spectrum magnitude", 300, 300);
 }
 
 //------------------- Filters -----------------------//
@@ -125,8 +172,8 @@ Mat medianFilter(const Mat& input) {
 Mat averageFilter(const Mat& input) {
     Mat padded;
     Mat filtered;
-    int n = 2;
-    cv::copyMakeBorder(input, filtered, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
+    int n = 1;
+    cv::copyMakeBorder(input, filtered, 0, 0, 0, 0, BORDER_CONSTANT, Scalar::all(0));
     cv::copyMakeBorder(input, padded, n, n, n, n, BORDER_CONSTANT, Scalar::all(0));
     for (int x = n; x < (filtered.rows - n); x++)
         for (int y = n; y < (filtered.cols - n); y++)
@@ -136,13 +183,13 @@ Mat averageFilter(const Mat& input) {
             for (int i = x - n; i <= x + n; i++) {
                 for (int j = y - n; j <= y + n; j++) {
                     //std::cout << i << " - " << j  << "\n";
-                    if ((int)padded.at<uchar>(i, j) > 0 && (int)padded.at<uchar>(i, j) < 255)
+                    //if ((int)padded.at<uchar>(i, j) > 0 && (int)padded.at<uchar>(i, j) < 255)
                         l.append(padded.at<uchar>(i, j));
                 }
             }
             int tempval = l.average();
             //std::cout << tempval << "\n";
-            filtered.at<uchar>(x, y) = tempval;
+            filtered.at<uchar>(x-n, y-n) = tempval;
         }
 
     return filtered;
@@ -174,7 +221,7 @@ cv::Mat linear_filter(const cv::Mat& input)
 
 
             sort(neightbours, neightbours, SORT_EVERY_COLUMN | SORT_ASCENDING);
-            int sum = 0;
+            /*int sum = 0;
             int count = 0;
             for (int n = 0; n < 25;n++)
                 if(neightbours(n) != 0)
@@ -183,9 +230,9 @@ cv::Mat linear_filter(const cv::Mat& input)
                     count++;
                 }
                 if (count > 0)
-                    output.at<uchar>(i-2,j-2) = sum/count;
+                    output.at<uchar>(i-2,j-2) = sum/count;*/
 
-            //output.at<uchar>(i - 1, j - 1) = (neightbours(3) + neightbours(4) + neightbours(5)) / 3;
+            output.at<uchar>(i - 1, j - 1) = (neightbours(10) + neightbours(11) + neightbours(12)+neightbours(13)+neightbours(14)) / 5;
         }
 
     }
@@ -195,10 +242,11 @@ cv::Mat cv_linear_filter(const cv::Mat& input)
 {
     cv::Mat output;
     cv::Mat_<float> kernel(3, 3);
-    kernel << 0,  1,  0,
-            1,  -4,  1,
-            0,  1,  0;
+    kernel << -1,  -1,  -1,
+            -1,  8,  -1,
+            -1,  -1,  -1;
     cv::filter2D(input, output, -1, kernel, cv::Point(-1, -1), 0, cv::BORDER_REFLECT);
+    cv::threshold(output,output,50,255,THRESH_TOZERO);
     return output;
 }
 
@@ -270,4 +318,8 @@ Mat adaptiveFilter(const Mat& input)
         }
         std::cout << count << std::endl;
         return filtered;
+}
+Mat bilateral(Mat& input)
+{
+
 }
