@@ -7,16 +7,51 @@
 #include<opencv2/core/core.hpp>
 #include <opencv2/highgui.hpp>
 #include "opencv2/opencv.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include "linkedlist.h"
+
 
 using namespace cv;
 
+
+void showimg( std::string name ,cv::Mat img,bool resize)
+{
+    namedWindow(name, WINDOW_NORMAL);
+    if (resize)
+    resizeWindow(name, 800, 1000);
+      imshow(name, img);
+}
 // Mostly Taken from https://docs.opencv.org/master/d8/dbc/tutorial_histogram_calculation.html
-Mat make_histogram(const cv::Mat& input)
+Mat make_histogram(const cv::Mat& input, bool eq)
 {
     Mat histogram;
-
     calcHist( std::vector<Mat>{input},{0}, noArray(), histogram, {256}, {0, 256});
+
+    if (eq)
+    {
+
+
+        // uses the calc_histogram to calculate the histogram for the image
+        Mat transformation_function(histogram.size(), CV_32FC1);
+        float c = float(histogram.rows - 1) / (input.rows*input.cols);
+
+        for (int i = 0; i < histogram.rows; i++)
+        {
+            for (int j = 0; j < i; j++)
+            {
+                transformation_function.at<float>(i) += histogram.at<float>(j);
+            }
+             transformation_function.at<float>(i) *= c;
+        }
+
+        transformation_function.convertTo(transformation_function, CV_8U);
+        LUT(input, transformation_function, histogram); // Look-up table of 256
+        // this is also why we convert to 8U
+
+        calcHist( std::vector<Mat>{histogram},{0}, noArray(), histogram, {256}, {0, 256});
+    }
+
+
 
     int histSize = 256;
 
@@ -40,8 +75,8 @@ Mat make_histogram(const cv::Mat& input)
 Mat calc_dft(const Mat& input)
 {
     Mat img, padded;
-    cv::cvtColor(input, img, CV_BGR2GRAY);
-
+//    cv::cvtColor(input, img, CV_BGR2GRAY);
+    img = input;
     int m = getOptimalDFTSize( img.rows );
     int n = getOptimalDFTSize( img.cols );
 
@@ -270,4 +305,59 @@ Mat adaptiveFilter(const Mat& input)
         }
         std::cout << count << std::endl;
         return filtered;
+}
+
+Mat equalize_image(cv::Mat& input)
+{
+    Mat histo;
+    calcHist( std::vector<Mat>{input},{0}, noArray(), histo, {256}, {0, 256});
+    // uses the calc_histogram to calculate the histogram for the image
+    Mat transformation_function(histo.size(), CV_32FC1);
+    float c = float(histo.rows - 1) / (input.rows*input.cols);
+
+    for (int i = 0; i < histo.rows; i++)
+    {
+        for (int j = 0; j < i; j++)
+        {
+            transformation_function.at<float>(i) += histo.at<float>(j);
+        }
+         transformation_function.at<float>(i) *= c;
+    }
+
+    transformation_function.convertTo(transformation_function, CV_8U);
+    Mat equalized_output;
+    LUT(input, transformation_function, equalized_output); // Look-up table of 256
+    // this is why we convert to 8U
+
+    return equalized_output;
+}
+
+Mat Notch_reject(int notch_size, int x, int y, Size img_size)
+{
+    Mat notchf(img_size,CV_32F);
+
+    for (int i = 0; i < img_size.height; i++)
+    {
+        for (int j = 0; j < img_size.width; j++)
+        {
+            //notchf(i,j)[1] = 0; // Imaginary
+
+
+            if (i < x+notch_size && i > x)
+            {
+                if (j < y+notch_size && j > y)
+                {
+                    notchf.at<float>(i,j) = 0; // Real
+                }
+            }
+            else
+            {
+                notchf.at<float>(i, j)= 1; // Real
+            }
+
+
+        }
+    }
+    return notchf;
+
 }
