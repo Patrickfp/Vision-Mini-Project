@@ -102,17 +102,53 @@ int main(int argc, char* argv[])
     showimg("Image 4",img4,true);
     Mat roi4(img4, Rect(825, 1400, 695, 420));
     imshow("Image 4 Histogram ROI",make_histogram( roi4, false));
-    Mat freq4 = calc_dft(img4);
-     //draw_magnitude(freq4);
-     Mat freq4_filt;
-     Mat filter = Notch_reject(30,1500,700,freq4.size());
+
+
+
+ /*   Mat Mag = calc_dft(img4,false);
+    Mat Freq = calc_dft(img4,true);
+    cv::Mat planes[] = {calc_dft(img4,false),calc_dft(img4,true)};
+
+    cv::Mat complex;
+    cv::merge(planes, 2, complex);
+
+
+    dftshift(complex);
+    Mat inv_freq4;
+    //dft(complex,inv_freq4, (DFT_SCALE | DFT_INVERSE));
+    cv::idft(complex, inv_freq4, (cv::DFT_SCALE | cv::DFT_REAL_OUTPUT));
+
+    inv_freq4 = cv::Mat(inv_freq4, cv::Rect(cv::Point(0, 0), img4.size()));
+
+    cv::Mat filter_planes[2];
+    cv::split(inv_freq4, filter_planes); // We can only display the real part
+    cv::normalize(filter_planes[0], filter_planes[0], 0, 1, cv::NORM_MINMAX);
+    showimg("Filter", filter_planes[0],true);
+*/
+    //cv::normalize(inv_freq4, inv_freq4, 0, 1, NORM_MINMAX);
+    //showimg("inv_dft",inv_freq4,true);
+/**/
+   // draw_magnitude(Mag,"1");
+
+    //imwrite( "../../images/Gray_Image.jpg", Mag );
+    cheat(img4);
+/*
+
+    Mat freq4_filt;
+    Mat filter = Notch_reject1(30,1500,700,freq4.size());
+   // showimg("filter1",filter,true);
+
      multiply(freq4,filter,freq4_filt);
-     draw_magnitude(freq4_filt);
+    //cv::mulSpectrums(freq4, filter, freq4, 0);
+     draw_magnitude(freq4_filt,"hej");
+
      Mat inv_freq4;
-     idft(freq4_filt,inv_freq4);//, DFT_SCALE);// | DFT_REAL_OUTPUT));
+     dftshift(freq4_filt);
+
+     dft(freq4,inv_freq4, (DFT_SCALE | DFT_INVERSE));// | DFT_REAL_OUTPUT));
      cv::normalize(inv_freq4, inv_freq4, 0, 1, NORM_MINMAX);
      showimg("inv_dft",inv_freq4,true);
-
+*/
 
 
     //-------------------------- Image 5-------------------------------------

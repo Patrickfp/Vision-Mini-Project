@@ -92,7 +92,42 @@ Mat equalize_image(cv::Mat& input)
 
     return equalized_output;
 }
-Mat calc_dft(const Mat& input)
+void dftshift(cv::Mat& mag)
+{
+    int cx = mag.cols / 2;
+    int cy = mag.rows / 2;
+
+    cv::Mat tmp;
+    cv::Mat q0(mag, cv::Rect(0, 0, cx, cy));
+    cv::Mat q1(mag, cv::Rect(cx, 0, cx, cy));
+    cv::Mat q2(mag, cv::Rect(0, cy, cx, cy));
+    cv::Mat q3(mag, cv::Rect(cx, cy, cx, cy));
+
+    q0.copyTo(tmp);
+    q3.copyTo(q0);
+    tmp.copyTo(q3);
+
+    q1.copyTo(tmp);
+    q2.copyTo(q1);
+    tmp.copyTo(q2);
+}
+void updateMag(Mat complex) {
+    Mat magI;
+    Mat planes[] = {
+            Mat::zeros(complex.size(), CV_32F),
+            Mat::zeros(complex.size(), CV_32F)
+    };
+    split(complex, planes); // planes[0] = Re(DFT(I)), planes[1] = Im(DFT(I))
+    magnitude(planes[0], planes[1], magI); // sqrt(Re(DFT(I))^2 + Im(DFT(I))^2)
+    // switch to logarithmic scale: log(1 + magnitude)
+    magI += Scalar::all(1);
+    log(magI, magI);
+    dftshift(magI); // rearrage quadrants
+    // Transform the magnitude matrix into a viewable image (float values 0-1)
+    normalize(magI, magI, 1, 0, NORM_INF);
+    showimg("spectrum", magI,true);
+}
+Mat calc_dft(const Mat& input, bool comp)
 {
     Mat img, padded;
     img = input;
@@ -117,38 +152,23 @@ Mat calc_dft(const Mat& input)
 
     planes[0](cv::Rect(0, 0, planes[0].cols & -2, planes[0].rows & -2));
 
-    int cx = planes[0].cols/2;
-    int cy = planes[0].rows/2;
+    //dftshift(planes[0]);
 
-    Mat q0(planes[0], Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
-    Mat q1(planes[0], Rect(cx, 0, cx, cy));  // Top-Right
-    Mat q2(planes[0], Rect(0, cy, cx, cy));  // Bottom-Left
-    Mat q3(planes[0], Rect(cx, cy, cx, cy)); // Bottom-Right
-
-
-
-    cv::Mat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
-    q0.copyTo(tmp);
-    q3.copyTo(q0);
-    tmp.copyTo(q3);
-
-    q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
-    q2.copyTo(q1);
-    tmp.copyTo(q2);
-
-    std::cout << planes[0].type() << "\n";
-   return planes[0];
+    //std::cout << planes[0].type() << "\n";
+    if (!comp)
+        return planes[0];
+    else
+        return planes[1];
 
 }
-
-void draw_magnitude(const Mat& magI)
+void draw_magnitude(const Mat& magI, char*  name)
 {
     Mat temp;
 
     normalize(magI, magI, 0, 1, NORM_MINMAX); // Transform the matrix with float values into a
-    cv::namedWindow( "spectrum magnitude", cv::WINDOW_NORMAL);
-    imshow("spectrum magnitude", magI);
-    cv::resizeWindow("spectrum magnitude", 300, 300);
+    cv::namedWindow( name, cv::WINDOW_NORMAL);
+    imshow(name, magI);
+    cv::resizeWindow(name, magI.cols/2, magI.rows/2);
 }
 
 //------------------- Filters -----------------------//
@@ -332,6 +352,36 @@ Mat adaptiveFilter(const Mat& input)
 
 Mat Notch_reject(int notch_size, int x, int y, Size img_size)
 {
+    Mat_<Vec2f> notchf(img_size);
+
+    for (int i = 0; i < img_size.height; i++)
+    {
+        for (int j = 0; j < img_size.width; j++)
+        {
+            notchf(i,j)[1] = 0; // Imaginary
+
+
+            if (i > x + notch_size || j > y + notch_size || j < y || i < x)
+            {
+                notchf(i, j)[0]= 1; // Real
+            } else
+            {
+                notchf(i,j)[0] = 0; // Real
+            }
+
+        }
+    }
+/*
+    for (int i = x; i < notch_size;i++)
+        for (int j = y; j < notch_size; j++) {
+            notchf(i,j)[0] = 0; // Real
+        }
+*/
+    return notchf;
+
+}
+Mat Notch_reject1(int notch_size, int x, int y, Size img_size)
+{
     Mat notchf(img_size,CV_32F);
 
     for (int i = 0; i < img_size.height; i++)
@@ -359,4 +409,69 @@ Mat Notch_reject(int notch_size, int x, int y, Size img_size)
     return notchf;
 
 }
+void cheat(Mat& img)
+{
+    cv::Mat padded;
+    int opt_rows = cv::getOptimalDFTSize(img.rows * 2 - 1);
+    int opt_cols = cv::getOptimalDFTSize(img.cols * 2 - 1);
+    cv::copyMakeBorder(img, padded, 0, opt_rows - img.rows, 0, opt_cols - img.cols,
+                       cv::BORDER_CONSTANT, cv::Scalar::all(0));
 
+    // Make place for both the real and complex values by merging planes into a
+    // cv::Mat with 2 channels.
+    // Use float element type because frequency domain ranges are large.
+    cv::Mat planes[] = {
+            cv::Mat_<float>(padded),
+            cv::Mat_<float>::zeros(padded.size())
+    };
+    cv::Mat complex;
+    cv::merge(planes, 2, complex);
+
+    // Compute DFT of image
+    cv::dft(complex, complex);
+
+    // Shift quadrants to center
+    dftshift(complex);
+
+    // Create a complex filter
+    cv::Mat filter,filter1, filter2,filter3,filter4;
+
+    filter = Notch_reject(300,1750,2100,complex.size());
+    filter2 = Notch_reject(300,3074,925,complex.size());
+    filter3 = Notch_reject(300,1750,2674,complex.size());
+    filter4 = Notch_reject(300,1400,2150,complex.size());
+    mulSpectrums(filter,filter2,filter,0);
+    mulSpectrums(filter,filter3,filter,0);
+    mulSpectrums(filter,filter4,filter,0);
+    mulSpectrums(filter,filter2,filter,0);
+
+    // Multiply Fourier image with filter
+    cv::mulSpectrums(complex, filter, complex, 0);
+
+    /*cv::mulSpectrums(complex, filter2, complex, 0);
+    cv::mulSpectrums(complex, filter3, complex, 0);
+    cv::mulSpectrums(complex, filter4, complex, 0);*/
+
+
+    // Shift back
+    dftshift(complex);
+
+    updateMag(complex);
+    // Compute inverse DFT
+    cv::Mat filtered;
+    cv::idft(complex, filtered, (cv::DFT_SCALE | cv::DFT_REAL_OUTPUT));
+
+    // Crop image (remove padded borders)
+    filtered = cv::Mat(filtered, cv::Rect(cv::Point(0, 0), img.size()));
+
+    // Visualize
+    showimg("Input", img,true);
+
+    cv::Mat filter_planes[2];
+    cv::split(filter, filter_planes); // We can only display the real part
+    cv::normalize(filter_planes[0], filter_planes[0], 0, 1, cv::NORM_MINMAX);
+    showimg("Filter", filter_planes[0],true);
+
+    cv::normalize(filtered, filtered, 0, 1, cv::NORM_MINMAX);
+    showimg("Filtered image", filtered,true);
+}
