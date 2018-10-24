@@ -445,9 +445,14 @@ Mat Notch_reject1(int notch_size, int x, int y, Size img_size)
             if (calcdist(x, y, i , j) > notch_size)
             {
                 notchf(i, j)[0]= 1; // Real
-            } else
+            }
+            else if(calcdist(x, y, i , j) < (float)notch_size/4.0f)
             {
-                notchf(i,j)[0] = pow((float)calcdist(x, y, i , j)/(float)notch_size,7); // Real
+                notchf(i,j)[0] = 0.0f; // Real
+            }
+            else
+            {
+                notchf(i,j)[0] = pow((float)calcdist(x, y, i , j)/(float)notch_size,1);
             }
 
         }
@@ -499,10 +504,10 @@ void cheat(Mat& img)
     // Create a complex filter
     cv::Mat filter,filter1, filter2,filter3,filter4;
     //std::cout << padded.size() << std::endl;
-    filter = Notch_reject1(500,1778,2141,complex.size());
-    filter2 = Notch_reject1(30,2609,1736,complex.size());
-    filter3 = Notch_reject1(500,3024,934,complex.size());
-    filter4 = Notch_reject1(30,2195,1336,complex.size());
+    filter = Notch_reject1(100,1778,2141,complex.size());
+    filter2 = Notch_reject1(50,2609,1736,complex.size());
+    filter3 = Notch_reject1(100,3024,934,complex.size());
+    filter4 = Notch_reject1(50,2195,1336,complex.size());
     mulSpectrums(filter,filter2,filter,0);
     mulSpectrums(filter,filter3,filter,0);
     mulSpectrums(filter,filter4,filter,0);
