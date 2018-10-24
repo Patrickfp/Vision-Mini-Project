@@ -149,13 +149,13 @@ int main(int argc, char* argv[])
         // Region of interest
         Mat roi2(img2, Rect(825, 1400, 695, 420));
         // Histogram image 2 (ROI)
-        imshow("histogram image 2's roi", make_histogram(img2, false));
+        imshow("Histogram image 2", make_histogram(img2, false));
         Mat img2_f = adaptiveFilter(img2);
         Mat roi2_f(img2_f, Rect(825, 1400, 695, 420));
         // Histogram of image 2 with filter (ROI)
-        showimg("histogram image 2 after filtering", make_histogram(roi2_f,false), false);
+        showimg("Histogram image 2 with", make_histogram(roi2_f,false), false);
         // Image 2 with filter
-        showimg("Image 2 after applying filter", img2_f, true);
+        showimg("Image 2 with filter", img2_f, true);
         // adaptive 3x3 to 7x7 filter
 
 

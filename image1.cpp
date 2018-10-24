@@ -122,11 +122,11 @@ int main(int argc, char* argv[])
        Mat img1_f = medianFilter(img1);
        Mat roi1_f(img1_f, Rect(825, 1400, 695, 420));
        // Hiistogram of Image 1 (ROI)
-       imshow("histogram of image 1 at roi", make_histogram(img1, false));
+       imshow("Histogram of image 1", make_histogram(img1, false));
        // Filtered Image
-       showimg("Filtered image 1",img1_f,true);
+       showimg("Image 1 with filter",img1_f,true);
        // Histogram of filtered image (ROI)
-       showimg("Filtered image 1 Histogram",make_histogram(roi1_f,false),false);
+       showimg("Histogram image 1 with filter",make_histogram(roi1_f,false),false);
 
 
 

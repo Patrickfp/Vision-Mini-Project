@@ -152,23 +152,23 @@ int main(int argc, char* argv[])
         showimg("Histogram image 3", make_histogram(roi3,false), false);
         // Image 3 after intensity tranformation
         Mat img3_int = transform_intensity(img3,-40);
-        showimg("Image after intensity transformation",img3_int,true);
+        showimg("Image 3 with intensity transformation",img3_int,true);
         // Image 3_int after average filter
         Mat img3_ave = averageFilter(img3_int);
-        showimg("Image 3 after average filter", img3_ave, true);
+        showimg("Image 3 with average filter", img3_ave, true);
         // Histogram after average and intensity transform (ROI)
         Mat roi3_ave(img3_ave, Rect(825, 1400, 695, 420));
-        showimg("Histogram image 3 after intensity and average filter changes",make_histogram(roi3_ave, false),false);
+        showimg("Histogram image 3 with intensity and average filter changes",make_histogram(roi3_ave, false),false);
         // Image 3_ave after linear filter
         Mat img3_lin = linear_filter(img3_ave);
-        showimg("Image 3 after linear filter", img3_lin, true);
+        showimg("Image 3 with linear filter", img3_lin, true);
         // Image 3 after adding the linear filter to the averaged imaged from before
         Mat img3_f;
         addWeighted(img3_lin,0.7,img3_ave,1.0,0.0,img3_f);
         showimg("Image 3 after all operations",img3_f,true);
         // Histogram after all the linear filter has also been applyed (ROI)
         Mat roi3_f(img3_f, Rect(825, 1400, 695, 420));
-        showimg("Histogram of image 3 after all operations",make_histogram(roi3_f, false), false);
+        showimg("Histogram image 3 after all operations",make_histogram(roi3_f, false), false);
 
         // Intensity transformation + 3x3 average filter + linear filter to sharpen
 

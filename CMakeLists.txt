@@ -14,5 +14,5 @@ if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GN
 endif()
 
 # Target executable
-add_executable(Mandatory1 image1.cpp)
+add_executable(Mandatory1 image3.cpp)
 target_link_libraries(Mandatory1 ${OpenCV_LIBS})
