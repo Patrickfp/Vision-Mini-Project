@@ -6,8 +6,8 @@
   Version: $$version$$
 */
 
-#include<opencv2/core/core.hpp>
-#include <opencv2/highgui.hpp>
+#include    <opencv2/core/core.hpp>
+#include    <opencv2/highgui.hpp>
 #include "opencv2/opencv.hpp"
 #include "functions.h"
 
@@ -102,6 +102,7 @@ int main(int argc, char* argv[])
     showimg("Image 4",img4,true);
     Mat roi4(img4, Rect(825, 1400, 695, 420));
     imshow("Image 4 Histogram ROI",make_histogram( roi4, false));
+    //draw_magnitude(calc_dft(img4,false),"hej");
 
 
 

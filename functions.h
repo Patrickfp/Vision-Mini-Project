@@ -19,7 +19,7 @@ void showimg( std::string name ,cv::Mat img,bool resize)
     namedWindow(name, WINDOW_NORMAL);
     if (resize)
     resizeWindow(name, 800, 1000);
-      imshow(name, img);
+    imshow(name, img);
 }
 // Mostly Taken from https://docs.opencv.org/master/d8/dbc/tutorial_histogram_calculation.html
 Mat make_histogram(const cv::Mat& input, bool eq)
@@ -167,7 +167,13 @@ void draw_magnitude(const Mat& magI, char*  name)
 
     normalize(magI, magI, 0, 1, NORM_MINMAX); // Transform the matrix with float values into a
     cv::namedWindow( name, cv::WINDOW_NORMAL);
+    Mat gray;
+    magI.convertTo(gray, CV_8U, 255);
+    dftshift(gray);
+    imwrite( "Magnitude.png", gray );
+
     imshow(name, magI);
+
     cv::resizeWindow(name, magI.cols/2, magI.rows/2);
 }
 
@@ -361,7 +367,7 @@ Mat Notch_reject(int notch_size, int x, int y, Size img_size)
             notchf(i,j)[1] = 0; // Imaginary
 
 
-            if (i > x + notch_size || j > y + notch_size || j < y || i < x)
+            if (i > x + notch_size/2 || j > y + notch_size/2 || j < y-notch_size/2 || i < x-notch_size/2)
             {
                 notchf(i, j)[0]= 1; // Real
             } else
@@ -378,35 +384,85 @@ Mat Notch_reject(int notch_size, int x, int y, Size img_size)
         }
 */
     return notchf;
-
 }
-Mat Notch_reject1(int notch_size, int x, int y, Size img_size)
+void drawfil(Mat_<Vec2f>& img, int x, int y, float val)
 {
-    Mat notchf(img_size,CV_32F);
+
+    if( (img(x-1,y)[0] > val &&  img(x,y-1)[0]  > val && img(x+1,y)[0]  > val && img(x,y+1)[0] > val && img(x,y)[0] > val) /* || val == 1*/)
+    {
+        std::cout << "nu "<< x << " - " << y << std::endl;
+        return;
+    }
+    if(img(x-1,y)[0] > val)
+        drawfil(img,x-1,y,val);
+    if(img(x,y-1)[0] > val)
+     drawfil(img,x,y-1,val);
+    if(img(x+1,y)[0] > val)
+      drawfil(img,x+1,y,val);
+    if(img(x,y+1)[0] > val)
+      drawfil(img,x,y+1,val);
+    img(x,y)[0] = val;
+    std::cout << x << " - " << y << std::endl;
+}
+Mat Notch_reject2(int notch_size, int x, int y, Size img_size)
+{
+    Mat_<Vec2f> notchf(img_size);
 
     for (int i = 0; i < img_size.height; i++)
     {
         for (int j = 0; j < img_size.width; j++)
         {
-            //notchf(i,j)[1] = 0; // Imaginary
-
-
-            if (i < x+notch_size && i > x)
-            {
-                if (j < y+notch_size && j > y)
-                {
-                    notchf.at<float>(i,j) = 0; // Real
-                }
-            }
-            else
-            {
-                notchf.at<float>(i, j)= 1; // Real
-            }
-
+            notchf(i,j)[1] = 0; // Imaginary
+            notchf(i,j)[0] = 1;
 
         }
     }
+    std::cout << " fuuuuuu" << std::endl;
+    for (int i = 0; i < notch_size; i++)
+    {
+        notchf(x,y)[0] = 0;
+        drawfil(notchf,x,y,0);
+    }
+
     return notchf;
+
+}
+double calcdist(int x, int y , int p0, int p1)
+{
+    return sqrt((x-p0)*(x-p0) + (y-p1)*(y-p1));
+}
+
+Mat Notch_reject1(int notch_size, int x, int y, Size img_size)
+{
+    Mat_<Vec2f> notchf(img_size);
+
+    for (int i = 0; i < img_size.height; i++)
+    {
+        for (int j = 0; j < img_size.width; j++)
+        {
+            notchf(i,j)[1] = 0; // Imaginary
+
+            if (calcdist(x, y, i , j) > notch_size)
+            {
+                notchf(i, j)[0]= 1; // Real
+            } else
+            {
+                notchf(i,j)[0] = pow((float)calcdist(x, y, i , j)/(float)notch_size,7); // Real
+            }
+
+        }
+    }
+/*
+    for (int i = x; i < notch_size;i++)
+        for (int j = y; j < notch_size; j++) {
+            notchf(i,j)[0] = 0; // Real
+        }
+*/
+    return notchf;
+}
+Mat fig4filter()
+
+{
 
 }
 void cheat(Mat& img)
@@ -428,22 +484,28 @@ void cheat(Mat& img)
     cv::merge(planes, 2, complex);
 
     // Compute DFT of image
-    cv::dft(complex, complex);
+    cv::dft(complex, complex);2140,
 
     // Shift quadrants to center
     dftshift(complex);
+    cv::Mat filter_plane[2];
+    cv::split(complex, filter_plane); // We can only display the real part
+    Mat gray;
+    filter_plane[0].convertTo(gray, CV_8U, 255);
+    //dftshift(gray);
+    imwrite( "Magnitude.png", gray );
+    showimg("mag1",gray,true);
 
     // Create a complex filter
     cv::Mat filter,filter1, filter2,filter3,filter4;
-
-    filter = Notch_reject(300,1750,2100,complex.size());
-    filter2 = Notch_reject(300,3074,925,complex.size());
-    filter3 = Notch_reject(300,1750,2674,complex.size());
-    filter4 = Notch_reject(300,1400,2150,complex.size());
+    //std::cout << padded.size() << std::endl;
+    filter = Notch_reject1(500,1778,2141,complex.size());
+    filter2 = Notch_reject1(30,2609,1736,complex.size());
+    filter3 = Notch_reject1(500,3024,934,complex.size());
+    filter4 = Notch_reject1(30,2195,1336,complex.size());
     mulSpectrums(filter,filter2,filter,0);
     mulSpectrums(filter,filter3,filter,0);
     mulSpectrums(filter,filter4,filter,0);
-    mulSpectrums(filter,filter2,filter,0);
 
     // Multiply Fourier image with filter
     cv::mulSpectrums(complex, filter, complex, 0);
