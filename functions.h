@@ -125,7 +125,7 @@ void updateMag(Mat complex) {
     dftshift(magI); // rearrage quadrants
     // Transform the magnitude matrix into a viewable image (float values 0-1)
     normalize(magI, magI, 1, 0, NORM_INF);
-    showimg("spectrum", magI,true);
+    showimg("Frequency spectrum with filters", magI,true);
 }
 Mat calc_dft(const Mat& input, bool comp)
 {
