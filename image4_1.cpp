@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     Mat img4 = imread(filepath,COLOR_BGR2GRAY);
 
     // Check that the image file was actually loaded
-    if (img1.empty()) {
+    if (img4.empty()) {
         std::cout << "Input image not found at '" << filepath << "'\n";
         return 1;
     }
